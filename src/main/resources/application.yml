@@ -1,0 +1,65 @@
+mybatis:
+  configuration:
+    lazy-loading-enabled: true
+    map-underscore-to-camel-case: true
+  mapper-locations:
+    - classpath:/mapper/*.xml
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+server:
+  port: 8080
+  servlet:
+    context-path: /tortoiserecordbook
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ENC@(Zxscscv0mdRmFMPFx6qoMV+avgr0jUWc7C9NNFur0At6fYOpRhL6z/oZjVBX08NoYTKGFPWio0I=)
+    username: ENC@(+6B1gD5wCoAST4Xc0pdkdA==)
+    password: ENC@(UMQKhfd001vMuBuoiC7pGG01UY2qd8ys)
+    type: com.alibaba.druid.pool.DruidDataSource
+  mvc:
+    static-path-pattern: /**
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 200MB
+  web:
+    resources:
+      add-mappings: true
+      cache:
+        cachecontrol:
+          ## 浏览器第一次请求服务器，服务器告诉浏览器此资源缓存7200秒，7200秒以内的所有此资源访问不用发给服务器请求，7200秒以后发请求给服务器
+          max-age: 7200s
+          #使用资源 last-modified 时间，来对比服务器和浏览器的资源是否相同没有变化。相同返回 304
+        use-last-modified: true
+      static-locations:
+        - classpath:/META-INF/resources/
+        - classpath:/resources/
+        - classpath:/static/
+        - classpath:/public/
+
+bucket:
+  bucket-path: ENC@(01bhhAPuARsFjsibEzW40CfNUgZfPsllpBHCJtrmiVsTroD5lrKPL5As6GnoEFKcbph17iqoSu2PEmSV8pRgux7UJBBa7qXm4ATPGbr5o0g=)
+  bucket-ware-house: ENC@(Am8g5p4zFj8xD7gRwJeKPJbwchbWMeXRLY8nRWGHlokKjW9vrViqPqZo0fmJ90Pr)
+  access-key-id: ENC@(lqXnBXU+EOAMX6T3pBtNs7Pb27Y1PkIesRvJBjKLPysKvtt3SIVvkg==)
+  access-key-secret: ENC@(FFZaCMqhObh+fA9zUn0BKrfXMH+ruhI6zkYV58OcoVnRih/UhYcAHQ==)
+  endpoint: ENC@(9TKOF846I3dO/qTyXjNUvXnqrH2lmq+xgxEj/MXXZDGSF/kPCLpxTb/WFalj8AF4)
+
+path:
+  user-default-photo-name: default-user-photo.png
+  tortoise-default-photo-name: default_tortoise_photo.png
+  user-head-tilts-dir-path: user/head-tilts/
+  tortoise-head-tilts-dir-path: tortoise/head-tilts/
+  tortoise-recording-dir-path: tortoise/recording-information/
+
+
+jasypt:
+  encryptor:
+    algorithm: PBEWithMD5AndDES
+    iv-generator-classname: org.jasypt.iv.NoIvGenerator
+    property:
+      # 前缀
+      prefix: ENC@(
+      # 后缀
+      suffix: )
