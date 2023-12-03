@@ -1,6 +1,5 @@
 package com.deaifish.tortoiserecordbook.controller;
 
-import com.deaifish.tortoiserecordbook.api.LoginApi;
 import com.deaifish.tortoiserecordbook.bean.RecordingInformation;
 import com.deaifish.tortoiserecordbook.dto.RecordingInformationAddDTO;
 import com.deaifish.tortoiserecordbook.dto.RecordingInformationUpdDTO;
@@ -30,7 +29,6 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequestMapping("/tortoise/recording")
-@LoginApi
 public class RecordingInformationController {
     @Autowired
     RecordingInformationService recordingInformationService;

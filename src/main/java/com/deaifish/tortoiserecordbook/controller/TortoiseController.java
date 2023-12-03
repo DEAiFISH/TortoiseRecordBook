@@ -1,6 +1,5 @@
 package com.deaifish.tortoiserecordbook.controller;
 
-import com.deaifish.tortoiserecordbook.api.LoginApi;
 import com.deaifish.tortoiserecordbook.bean.Tortoise;
 import com.deaifish.tortoiserecordbook.dto.TortoiseAddDTO;
 import com.deaifish.tortoiserecordbook.dto.TortoiseUpdDTO;
@@ -27,7 +26,6 @@ import java.util.List;
  */
 @RequestMapping("/tortoise")
 @RestController
-@LoginApi
 @Slf4j
 public class TortoiseController {
     @Autowired
