@@ -7,11 +7,13 @@ import com.deaifish.tortoiserecordbook.properties.PathProperties;
 import com.deaifish.tortoiserecordbook.service.IMGService;
 import com.deaifish.tortoiserecordbook.service.RecordingInformationService;
 import com.deaifish.tortoiserecordbook.vo.RecordingInformationVO;
+import com.deaifish.tortoiserecordbook.vo.ResultVO;
 import com.deaifish.tortoiserecordbook.vo.WeightVO;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,6 +31,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequestMapping("/tortoise/recording")
+@CrossOrigin()
 public class RecordingInformationController {
     @Autowired
     RecordingInformationService recordingInformationService;
@@ -46,7 +49,7 @@ public class RecordingInformationController {
      * @return java.util.List<com.deaifish.tortoiserecordbook.vo.WeightVO>
      */
     @GetMapping("/weight")
-    public List<WeightVO> selWeightByTID(@NotEmpty(message = "乌龟ID不能为空。") @RequestParam String tid) {
+    public ResultVO<List<WeightVO>> selWeightByTID(@NotEmpty(message = "乌龟ID不能为空。") @RequestParam String tid) {
         List<RecordingInformation> recordingInformation = recordingInformationService.selRecordingInformationByTID(tid);
         List<WeightVO> weightVOS = new ArrayList<>();
         for (RecordingInformation t : recordingInformation) {
@@ -54,7 +57,7 @@ public class RecordingInformationController {
                 weightVOS.add(WeightVO.builder().weight(t.getWeight()).size(t.getSize()).build());
             }
         }
-        return weightVOS;
+        return new ResultVO<>(HttpStatus.OK.value(), "根据乌龟ID查询对应乌龟的所有体重数据", weightVOS);
     }
 
     /**
@@ -65,8 +68,9 @@ public class RecordingInformationController {
      * @return java.util.List<com.deaifish.tortoiserecordbook.bean.TortoiseInformation>
      */
     @GetMapping("/all")
-    public List<RecordingInformation> selRecordingInformationAll() {
-        return recordingInformationService.selAllRecordingInformation();
+    public ResultVO<List<RecordingInformation>> selRecordingInformationAll() {
+        List<RecordingInformation> recordingInformationList = recordingInformationService.selAllRecordingInformation();
+        return new ResultVO<>(HttpStatus.OK.value(), "查询所有饲养记录", recordingInformationList);
     }
 
     /**
@@ -78,8 +82,9 @@ public class RecordingInformationController {
      * @return java.util.List<com.deaifish.tortoiserecordbook.bean.TortoiseInformation>
      */
     @GetMapping("/list")
-    public List<RecordingInformation> selRecordingInformationByTID(@NotEmpty(message = "乌龟ID不能为空。") @RequestParam String tid) {
-        return recordingInformationService.selRecordingInformationByTID(tid);
+    public ResultVO<List<RecordingInformation>> selRecordingInformationByTID(@NotEmpty(message = "乌龟ID不能为空。") @RequestParam String tid) {
+        List<RecordingInformation> recordingInformationList = recordingInformationService.selRecordingInformationByTID(tid);
+        return new ResultVO<>(HttpStatus.OK.value(), "根据乌龟ID查询对应的所有饲养记录", recordingInformationList);
     }
 
     /**
@@ -91,14 +96,15 @@ public class RecordingInformationController {
      * @return com.deaifish.tortoiserecordbook.vo.TortoiseInformationVO
      */
     @GetMapping("/sel")
-    public RecordingInformationVO selRecordingInformationByIID(@NotEmpty(message = "饲养记录ID不能为空。") @RequestParam String iid) {
+    public ResultVO<RecordingInformationVO> selRecordingInformationByIID(@NotEmpty(message = "饲养记录ID不能为空。") @RequestParam String iid) {
         RecordingInformation recordingInformation = recordingInformationService.selRecordingInformationByIID(iid);
-        return RecordingInformationVO.builder().tid(recordingInformation.getTid())
+        RecordingInformationVO recordingInformationVO = RecordingInformationVO.builder().tid(recordingInformation.getTid())
                 .iid(recordingInformation.getIid())
                 .img(recordingInformation.getImg())
                 .remark(recordingInformation.getRemark())
                 .date(recordingInformation.getDate())
                 .build();
+        return new ResultVO<>(HttpStatus.OK.value(), "根据饲养记录ID查询饲养记录信息", recordingInformationVO);
     }
 
     /**
@@ -110,7 +116,7 @@ public class RecordingInformationController {
      * @return boolean
      */
     @PostMapping("/add")
-    public boolean addRecordingInformation(@Validated @RequestBody RecordingInformationAddDTO recordingInformation) {
+    public ResultVO<String> addRecordingInformation(@Validated @RequestBody RecordingInformationAddDTO recordingInformation) {
         RecordingInformation r = RecordingInformation.builder()
                 .tid(recordingInformation.getTid())
                 .weight(recordingInformation.getWeight())
@@ -119,11 +125,19 @@ public class RecordingInformationController {
                 .remark(recordingInformation.getRemark())
                 .img(recordingInformation.getImg()).build();
         recordingInformationService.addRecordingInformation(r);
-        return true;
+        return new ResultVO<>(HttpStatus.OK.value(), "添加饲养记录", "添加成功。");
     }
 
+    /**
+     * @description 添加饲养记录照片
+     *
+     * @author DEAiFISH
+     * @date 2023/12/6 00:31
+     * @param file 记录照片文件
+     * @return java.lang.String
+     */
     @PostMapping("/upload-photo")
-    public String uploadPhotos(@NotNull(message = "文件不能为空。") @RequestParam MultipartFile[] file) {
+    public ResultVO<String> uploadPhotos(@NotNull(message = "文件不能为空。") @RequestParam MultipartFile[] file) {
         StringBuilder sb = new StringBuilder();
         try {
             for (MultipartFile img : file) {
@@ -133,7 +147,7 @@ public class RecordingInformationController {
         } catch (IOException e) {
             log.info("uploadHeadTilts ==========> {}", e.getMessage());
         }
-        return sb.toString();
+        return new ResultVO<>(HttpStatus.OK.value(), "添加饲养记录照片", sb.toString());
     }
 
     /**
@@ -146,7 +160,7 @@ public class RecordingInformationController {
      * @return java.lang.String
      */
     @PutMapping("/upd-photo")
-    public String updatePhoto(@NotNull(message = "文件不能为空。") @RequestParam MultipartFile[] files, @NotEmpty(message = "饲养记录ID不能为空。") @RequestParam String iid) {
+    public ResultVO<String> updatePhoto(@NotNull(message = "文件不能为空。") @RequestParam MultipartFile[] files, @NotEmpty(message = "饲养记录ID不能为空。") @RequestParam String iid) {
         RecordingInformation recordingInformation = recordingInformationService.selRecordingInformationByIID(iid);
         if (recordingInformation == null) {
             return null;
@@ -168,7 +182,7 @@ public class RecordingInformationController {
         } catch (IOException e) {
             log.info("updUserPhoto ===========> {}", e.getMessage());
         }
-        return sb.toString();
+        return new ResultVO<>(HttpStatus.OK.value(), "更新饲养记录图片", sb.toString());
     }
 
     /**
@@ -180,7 +194,7 @@ public class RecordingInformationController {
      * @return boolean
      */
     @PutMapping("/upd")
-    public boolean updRecordingInformation(@Validated @RequestBody RecordingInformationUpdDTO recordingInformation) {
+    public ResultVO<String> updRecordingInformation(@Validated @RequestBody RecordingInformationUpdDTO recordingInformation) {
         RecordingInformation r = recordingInformationService.selRecordingInformationByIID(recordingInformation.getIid());
         recordingInformationService.updRecordingInformation(
                 RecordingInformation.builder()
@@ -192,7 +206,7 @@ public class RecordingInformationController {
                         .date(recordingInformation.getDate())
                         .build()
         );
-        return true;
+        return new ResultVO<>(HttpStatus.OK.value(), "修改饲养记录", "修改成功。");
     }
 
     /**
@@ -204,25 +218,20 @@ public class RecordingInformationController {
      * @return boolean
      */
     @DeleteMapping("/del")
-    public boolean delRecordingInformationByIID(@NotEmpty(message = "饲养记录ID不能为空。") @RequestParam String iid) {
-        try {
-            //删除饲养记录照片（OSS）
-            RecordingInformation r = recordingInformationService.selRecordingInformationByIID(iid);
-            if (r == null) {
-                return false;
-            }
-            if (r.getImg() != null && !r.getImg().isEmpty()) {
-                String[] files = r.getImg().split(";");
-                for (String img : files) {
-                    imgService.delImg(img);
-                }
-            }
-            //删除饲养记录（数据库）
-            recordingInformationService.delRecordingInformationByIID(iid);
-        } catch (Exception e) {
-            log.info("delTortoiseInformationByIID ===========> {}", e.getMessage());
-            return false;
+    public ResultVO<String> delRecordingInformationByIID(@NotEmpty(message = "饲养记录ID不能为空。") @RequestParam String iid) {
+        RecordingInformation r = recordingInformationService.selRecordingInformationByIID(iid);
+        if (r == null) {
+            return new ResultVO<>(HttpStatus.OK.value(), "删除饲养记录", "饲养记录未找到。");
         }
-        return true;
+        //删除饲养记录照片（OSS）
+        if (r.getImg() != null && !r.getImg().isEmpty()) {
+            String[] files = r.getImg().split(";");
+            for (String img : files) {
+                imgService.delImg(img);
+            }
+        }
+        //删除饲养记录（数据库）
+        recordingInformationService.delRecordingInformationByIID(iid);
+        return new ResultVO<>(HttpStatus.OK.value(), "删除饲养记录", "删除成功。");
     }
 }

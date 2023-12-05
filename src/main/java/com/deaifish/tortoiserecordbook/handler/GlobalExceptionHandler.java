@@ -8,7 +8,6 @@ import com.deaifish.tortoiserecordbook.vo.ResultVO;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
@@ -18,11 +17,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.io.IOException;
 import java.sql.SQLIntegrityConstraintViolationException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @description 统一错误处理器
@@ -46,17 +42,17 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
     public ResultVO<String> exceptionHandler(SQLIntegrityConstraintViolationException ex) {
-        ArrayList<String> collect = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
         String message = ex.getMessage();
         log.error("{}", ex.getMessage());
         if (message.startsWith("Duplicate entry")) {
-            collect.add("用户已经存在，请重新输入。");
+            sb.append("用户已经存在，请重新输入。");
         } else if (message.endsWith("cannot be null")) {
-            collect.add(ex.getMessage().split(" ")[1] + "不能为null，请重新输入。");
+            sb.append(ex.getMessage().split(" ")[1] + "不能为null，请重新输入。");
         } else {
-            collect.add("用户信息出现未知异常。。。");
+            sb.append("用户信息出现未知异常。。。");
         }
-        return new ResultVO<>(HttpStatus.BAD_GATEWAY.value(), MSGConstant.BAD_SQL_MSG, collect);
+        return new ResultVO<>(HttpStatus.BAD_GATEWAY.value(), MSGConstant.BAD_SQL_MSG, sb.toString());
     }
 
 
@@ -71,10 +67,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BindException.class)
     public ResultVO<String> bindExceptionHandler(BindException e) {
         List<FieldError> fieldErrors = e.getBindingResult().getFieldErrors();
-        List<String> collect = fieldErrors.stream()
-                .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                .collect(Collectors.toList());
-        return new ResultVO<>(HttpStatus.BAD_REQUEST.value(), MSGConstant.BAD_REQUEST_ARG_MSG, collect);
+        StringBuilder sb = new StringBuilder();
+        for (FieldError fieldError : fieldErrors) {
+            sb.append(fieldError.getDefaultMessage());
+        }
+        return new ResultVO<>(HttpStatus.BAD_REQUEST.value(), MSGConstant.BAD_REQUEST_ARG_MSG, sb.toString());
     }
 
     /**
@@ -88,10 +85,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResultVO<String> methodArgumentNotValidExceptionHandler(MethodArgumentNotValidException e) {
         List<FieldError> fieldErrors = e.getBindingResult().getFieldErrors();
-        List<String> collect = fieldErrors.stream()
-                .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                .collect(Collectors.toList());
-        return new ResultVO<>(HttpStatus.BAD_REQUEST.value(), MSGConstant.BAD_REQUEST_ARG_MSG, collect);
+        StringBuilder sb = new StringBuilder();
+        for (FieldError fieldError : fieldErrors) {
+            sb.append(fieldError.getDefaultMessage());
+        }
+        return new ResultVO<>(HttpStatus.BAD_REQUEST.value(), MSGConstant.BAD_REQUEST_ARG_MSG, sb.toString());
     }
 
     /**
@@ -105,10 +103,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResultVO<String> constraintViolationExceptionHandler(ConstraintViolationException e) {
         Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
-        List<String> collect = constraintViolations.stream()
-                .map(ConstraintViolation::getMessage)
-                .collect(Collectors.toList());
-        return new ResultVO<>(HttpStatus.BAD_REQUEST.value(), MSGConstant.BAD_REQUEST_ARG_MSG, collect);
+        StringBuilder sb = new StringBuilder();
+        for (ConstraintViolation<?> violation : constraintViolations) {
+            sb.append(violation.getMessage());
+        }
+
+        return new ResultVO<>(HttpStatus.BAD_REQUEST.value(), MSGConstant.BAD_REQUEST_ARG_MSG, sb.toString());
     }
 
     /**
@@ -121,8 +121,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(UserException.class)
     public ResultVO<String> userException(UserException ex) {
-        List<String> collect = Collections.singletonList(ex.getMessage());
-        return new ResultVO<>(HttpStatus.NOT_FOUND.value(), MSGConstant.BAD_BEAN_MSG, collect);
+        return new ResultVO<>(HttpStatus.NOT_FOUND.value(), MSGConstant.BAD_BEAN_MSG, ex.getMessage());
     }
 
     /**
@@ -135,8 +134,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(TortoiseException.class)
     public ResultVO<String> tortoiseException(TortoiseException ex) {
-        List<String> collect = Collections.singletonList(ex.getMessage());
-        return new ResultVO<>(HttpStatus.NOT_FOUND.value(), MSGConstant.BAD_BEAN_MSG, collect);
+        return new ResultVO<>(HttpStatus.NOT_FOUND.value(), MSGConstant.BAD_BEAN_MSG, ex.getMessage());
     }
 
     /**
@@ -149,8 +147,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(RecordingInformationException.class)
     public ResultVO<String> recordingInformationException(RecordingInformationException ex) {
-        List<String> collect = Collections.singletonList(ex.getMessage());
-        return new ResultVO<>(HttpStatus.NOT_FOUND.value(), MSGConstant.BAD_BEAN_MSG, collect);
+        return new ResultVO<>(HttpStatus.NOT_FOUND.value(), MSGConstant.BAD_BEAN_MSG, ex.getMessage());
     }
 
     /**
@@ -163,8 +160,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(IOException.class)
     public ResultVO<String> IOException(IOException ex) {
-        List<String> collect = Collections.singletonList(ex.getMessage());
-        return new ResultVO<>(HttpStatus.BAD_GATEWAY.value(), MSGConstant.BAD_IO_MSG, collect);
+        return new ResultVO<>(HttpStatus.BAD_GATEWAY.value(), MSGConstant.BAD_IO_MSG, ex.getMessage());
     }
 
     /**
@@ -177,7 +173,6 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(IndexOutOfBoundsException.class)
     public ResultVO<String> indexOutOfBoundsException(IndexOutOfBoundsException ex) {
-        List<String> collect = Collections.singletonList(ex.getMessage());
-        return new ResultVO<>(HttpStatus.BAD_GATEWAY.value(), MSGConstant.BAD_PATH_MSG, collect);
+        return new ResultVO<>(HttpStatus.BAD_GATEWAY.value(), MSGConstant.BAD_PATH_MSG, ex.getMessage());
     }
 }

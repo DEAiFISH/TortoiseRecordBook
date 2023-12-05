@@ -7,10 +7,12 @@ import com.deaifish.tortoiserecordbook.dto.UserUpdateDTO;
 import com.deaifish.tortoiserecordbook.properties.PathProperties;
 import com.deaifish.tortoiserecordbook.service.IMGService;
 import com.deaifish.tortoiserecordbook.service.UserService;
+import com.deaifish.tortoiserecordbook.vo.ResultVO;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +29,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequestMapping("/user")
+@CrossOrigin()    //解决跨域问题
 public class UserController {
     @Autowired
     UserService userService;
@@ -44,8 +47,8 @@ public class UserController {
      * @return com.deaifish.tortoiserecordbook.bean.User
      */
     @PostMapping("/login")
-    public User login(@RequestBody UserLoginDTO user) {
-        return userService.login(user);
+    public ResultVO<User> login(@RequestBody UserLoginDTO user) {
+        return new ResultVO<>(HttpStatus.OK.value(), "用户登录", userService.login(user));
     }
 
     /**
@@ -57,8 +60,8 @@ public class UserController {
      * @return java.util.List<com.deaifish.tortoiserecordbook.bean.User>
      */
     @GetMapping("/search-all")
-    public List<User> searchAll() {
-        return userService.searchAll();
+    public ResultVO<List<User>> searchAll() {
+        return new ResultVO<>(HttpStatus.OK.value(), "查询所有用户", userService.searchAll());
     }
 
     /**
@@ -70,11 +73,11 @@ public class UserController {
      * @return java.lang.Boolean
      */
     @PostMapping("/signup")
-    public boolean singUp(@Validated @RequestBody UserSingUpDTO user) {
+    public ResultVO<String> singUp(@Validated @RequestBody UserSingUpDTO user) {
         userService.signUp(User.builder().account(user.getAccount())
                 .passwd(user.getPasswd())
                 .headTilts(user.getHeadTilts()).build());
-        return true;
+        return new ResultVO<>(HttpStatus.OK.value(), "注册用户", "注册成功。");
     }
 
     /**
@@ -86,8 +89,9 @@ public class UserController {
      * @return java.lang.String 文件路径
      */
     @PostMapping("/upload-photo")
-    public String uploadHeadTilts(@NotNull(message = "文件不能为空。") @RequestParam MultipartFile file) throws IOException {
-        return imgService.uploadImg(file.getInputStream(), pathProperties.userHeadTiltsDirPath);
+    public ResultVO<String> uploadHeadTilts(@NotNull(message = "文件不能为空。") @RequestParam MultipartFile file) throws IOException {
+        String path = imgService.uploadImg(file.getInputStream(), pathProperties.userHeadTiltsDirPath);
+        return new ResultVO<>(HttpStatus.OK.value(), "上传头像", path);
     }
 
     /**
@@ -99,10 +103,10 @@ public class UserController {
      * @return boolean
      */
     @PutMapping("/upd")
-    public boolean updUser(@Validated @RequestBody UserUpdateDTO user) {
+    public ResultVO<String> updUser(@Validated @RequestBody UserUpdateDTO user) {
         User u = userService.selByID(user.getId());
         if (u == null) {
-            return false;
+            return new ResultVO<>(HttpStatus.OK.value(), "修改用户信息", "用户不存在。");
         }
         userService.updUser(User.builder()
                 .id(user.getId())
@@ -110,7 +114,7 @@ public class UserController {
                 .passwd(user.getPasswd())
                 .headTilts(u.getHeadTilts())
                 .build());
-        return true;
+        return new ResultVO<>(HttpStatus.OK.value(), "修改用户信息", "修改成功。");
     }
 
     /**
@@ -123,12 +127,12 @@ public class UserController {
      * @return boolean
      */
     @PutMapping("/upd-photo")
-    public String updatePhoto(@NotNull(message = "文件不能为空。") @RequestParam MultipartFile img, @Validated @RequestParam String uid) throws IOException {
+    public ResultVO<String> updatePhoto(@NotNull(message = "文件不能为空。") @RequestParam MultipartFile img, @Validated @RequestParam String uid) throws IOException {
         User user = userService.selByID(uid);
         String fileName = imgService.updImg(user.getHeadTilts(), img.getInputStream(), pathProperties.userHeadTiltsDirPath);
         user.setHeadTilts(fileName);
         userService.updUser(user);
-        return fileName;
+        return new ResultVO<>(HttpStatus.OK.value(), "修改头像", fileName);
     }
 
     /**
@@ -140,8 +144,8 @@ public class UserController {
      * @return java.lang.Boolean
      */
     @DeleteMapping("/del")
-    public boolean delUser(@NotEmpty @RequestParam String id) {
+    public ResultVO<String> delUser(@NotEmpty @RequestParam String id) {
         userService.delUser(id);
-        return true;
+        return new ResultVO<>(HttpStatus.OK.value(), "删除用户", "删除成功。");
     }
 }

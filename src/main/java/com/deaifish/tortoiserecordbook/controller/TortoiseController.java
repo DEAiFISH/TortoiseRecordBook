@@ -7,10 +7,12 @@ import com.deaifish.tortoiserecordbook.exception.TortoiseException;
 import com.deaifish.tortoiserecordbook.properties.PathProperties;
 import com.deaifish.tortoiserecordbook.service.IMGService;
 import com.deaifish.tortoiserecordbook.service.TortoiseService;
+import com.deaifish.tortoiserecordbook.vo.ResultVO;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +29,7 @@ import java.util.List;
 @RequestMapping("/tortoise")
 @RestController
 @Slf4j
+@CrossOrigin()
 public class TortoiseController {
     @Autowired
     TortoiseService tortoiseService;
@@ -44,7 +47,7 @@ public class TortoiseController {
      * @return boolean true:成功;false:失败
      */
     @PostMapping("/add")
-    boolean addTortoise(@Validated @RequestBody TortoiseAddDTO tortoise) {
+    public ResultVO<String> addTortoise(@Validated @RequestBody TortoiseAddDTO tortoise) {
         tortoiseService.addTortoise(Tortoise.builder()
                 .uid(tortoise.getUid())
                 .name(tortoise.getName())
@@ -56,7 +59,7 @@ public class TortoiseController {
                 .kind(tortoise.getKind())
                 .build());
 
-        return true;
+        return new ResultVO<>(HttpStatus.OK.value(), "添加乌龟", "添加成功。");
     }
 
     /**
@@ -68,8 +71,9 @@ public class TortoiseController {
      * @return java.lang.String 图片保存全路径
      */
     @PostMapping("/upload-photo")
-    public String uploadTortoisePhoto(@NotNull(message = "文件不能为空。") @RequestParam MultipartFile img) throws IOException {
-        return imgService.uploadImg(img.getInputStream(), path.tortoiseHeadTiltsDirPath);
+    public ResultVO<String> uploadTortoisePhoto(@NotNull(message = "文件不能为空。") @RequestParam MultipartFile img) throws IOException {
+        String imgPath = imgService.uploadImg(img.getInputStream(), path.tortoiseHeadTiltsDirPath);
+        return new ResultVO<>(HttpStatus.OK.value(), "上传图像", imgPath);
     }
 
     /**
@@ -82,15 +86,15 @@ public class TortoiseController {
      * @return java.lang.String
      */
     @PutMapping("/upd-photo")
-    public String updatePhoto(@NotNull(message = "文件不能为空。") @RequestParam MultipartFile img, @NotEmpty(message = "乌龟ID不能为空。") @RequestParam String tid) throws IOException {
+    public ResultVO<String> updatePhoto(@NotNull(message = "文件不能为空。") @RequestParam MultipartFile img, @NotEmpty(message = "乌龟ID不能为空。") @RequestParam String tid) throws IOException {
         Tortoise tortoise = tortoiseService.selByTID(tid);
         if (tortoise == null) {
             throw new TortoiseException("乌龟不存在。");
         }
-        String fileName = imgService.updImg(tortoise.getHeadTilts(), img.getInputStream(), path.tortoiseHeadTiltsDirPath);
-        tortoise.setHeadTilts(fileName);
+        String imgPath = imgService.updImg(tortoise.getHeadTilts(), img.getInputStream(), path.tortoiseHeadTiltsDirPath);
+        tortoise.setHeadTilts(imgPath);
         tortoiseService.updTortoise(tortoise);
-        return fileName;
+        return new ResultVO<>(HttpStatus.OK.value(), "上传乌龟头像", imgPath);
     }
 
     /**
@@ -102,9 +106,9 @@ public class TortoiseController {
      * @return boolean true:成功;false:失败
      */
     @DeleteMapping("/del")
-    boolean delTortoise(@NotEmpty(message = "乌龟ID不能为空。") @RequestParam String tid) {
+    public ResultVO<String> delTortoise(@NotEmpty(message = "乌龟ID不能为空。") @RequestParam String tid) {
         tortoiseService.delTortoise(tid);
-        return true;
+        return new ResultVO<>(HttpStatus.OK.value(), "删除乌龟", "删除成功。");
     }
 
     /**
@@ -116,8 +120,9 @@ public class TortoiseController {
      * @return java.util.List<com.deaifish.tortoiserecordbook.bean.Tortoise>
      */
     @GetMapping("/selOfUser")
-    List<Tortoise> selByUID(@NotEmpty(message = "用户ID不能为空。") @RequestParam String uid) {
-        return tortoiseService.selByUID(uid);
+    public ResultVO<List<Tortoise>> selByUID(@NotEmpty(message = "用户ID不能为空。") @RequestParam String uid) {
+        List<Tortoise> tortoises = tortoiseService.selByUID(uid);
+        return new ResultVO<>(HttpStatus.OK.value(), "根据用户ID查询持有的所有龟", tortoises);
     }
 
     /**
@@ -129,8 +134,9 @@ public class TortoiseController {
      * @return com.deaifish.tortoiserecordbook.bean.Tortoise
      */
     @GetMapping("/id")
-    public Tortoise selByTID(@NotEmpty(message = "乌龟ID不能为空。") @RequestParam("id") String tId) {
-        return tortoiseService.selByTID(tId);
+    public ResultVO<Tortoise> selByTID(@NotEmpty(message = "乌龟ID不能为空。") @RequestParam("id") String tId) {
+        Tortoise tortoise = tortoiseService.selByTID(tId);
+        return new ResultVO<>(HttpStatus.OK.value(), "根据乌龟ID查询乌龟信息", tortoise);
     }
 
     /**
@@ -141,8 +147,9 @@ public class TortoiseController {
      * @return java.util.List<com.deaifish.tortoiserecordbook.bean.Tortoise>
      */
     @GetMapping("/sel")
-    List<Tortoise> selAll() {
-        return tortoiseService.selAll();
+    public ResultVO<List<Tortoise>> selAll() {
+        List<Tortoise> tortoises = tortoiseService.selAll();
+        return new ResultVO<>(HttpStatus.OK.value(), "查询所有乌龟信息", tortoises);
     }
 
     /**
@@ -154,7 +161,7 @@ public class TortoiseController {
      * @return boolean true:成功;false:失败
      */
     @PutMapping("/upd")
-    boolean updTortoise(@Validated @RequestBody TortoiseUpdDTO tortoise) {
+    public ResultVO<String> updTortoise(@Validated @RequestBody TortoiseUpdDTO tortoise) {
         Tortoise t = tortoiseService.selByTID(tortoise.getId());
         if (t == null) {
             throw new TortoiseException("乌龟不存在。");
@@ -169,6 +176,6 @@ public class TortoiseController {
                 .memo(tortoise.getMemo())
                 .firstTime(tortoise.getFirstTime())
                 .build());
-        return true;
+        return new ResultVO<>(HttpStatus.OK.value(), "修改乌龟信息", "修改成功。");
     }
 }

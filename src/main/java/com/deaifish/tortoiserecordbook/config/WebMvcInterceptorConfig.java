@@ -34,19 +34,4 @@ public class WebMvcInterceptorConfig implements WebMvcConfigurer {
                 .excludePathPatterns();
     }
 
-    /**
-     * @description 跨域配置
-     *
-     * @author DEAiFISH
-     * @date 2023/12/3 03:34
-     */
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOriginPatterns("*")
-                .allowCredentials(true)
-                .allowedMethods("GET", "POST", "PUT", "DELETE");
-    }
-
-
 }
