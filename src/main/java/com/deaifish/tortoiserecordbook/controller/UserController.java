@@ -148,4 +148,18 @@ public class UserController {
         userService.delUser(id);
         return new ResultVO<>(HttpStatus.OK.value(), "删除用户", "删除成功。");
     }
+
+    /**
+     * @description 查询ID是否被使用
+     *
+     * @author DEAiFISH
+     * @date 2023/12/6 23:25
+     * @param id 用户ID
+     * @return Boolean true:被占用;false:未被占用
+     */
+    @GetMapping("/check")
+    public  ResultVO<Boolean> checkID(@RequestParam String id){
+        User user = userService.selByID(id);
+        return new ResultVO<>(HttpStatus.OK.value(), "查询ID是否被注册。", user != null);
+    }
 }
