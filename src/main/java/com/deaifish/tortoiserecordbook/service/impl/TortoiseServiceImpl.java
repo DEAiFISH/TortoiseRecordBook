@@ -25,15 +25,15 @@ import java.util.List;
 public class TortoiseServiceImpl implements TortoiseService {
 
     @Autowired
-    TortoiseMapper tortoiseMapper;
+    private TortoiseMapper tortoiseMapper;
     @Autowired
-    RecordingInformationService recordingInformationService;
+    private RecordingInformationService recordingInformationService;
     @Autowired
-    PathProperties pathProperties;
+    private PathProperties pathProperties;
     @Autowired
-    ImgUtil imgUtil;
+    private ImgUtil imgUtil;
     @Autowired
-    UUIDUtil uuidUtil;
+    private UUIDUtil uuidUtil;
 
     /**
      * @description 添加乌龟

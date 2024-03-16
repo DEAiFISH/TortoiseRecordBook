@@ -1,6 +1,5 @@
 package com.deaifish.tortoiserecordbook.service.impl;
 
-import com.deaifish.tortoiserecordbook.mapper.UserMapper;
 import com.deaifish.tortoiserecordbook.service.IMGService;
 import com.deaifish.tortoiserecordbook.utils.ImgUtil;
 import com.deaifish.tortoiserecordbook.utils.UUIDUtil;
@@ -20,11 +19,9 @@ import java.io.InputStream;
 @Slf4j
 public class IMGServiceImpl implements IMGService {
     @Autowired
-    UserMapper userMapper;
+    private ImgUtil imgUtil;
     @Autowired
-    ImgUtil imgUtil;
-    @Autowired
-    UUIDUtil uuidUtil;
+    private UUIDUtil uuidUtil;
 
     /**
      * @description 上传用户头像

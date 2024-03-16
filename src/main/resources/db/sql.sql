@@ -6,9 +6,9 @@ use TURTLE_RECORD_BOOK;
 drop table if exists USER;
 create table USER
 (
-    U_ID         varchar(32) primary key comment 'UUID生成ID',
-    U_ACCOUNT    varchar(20)   not null unique,
-    U_PASSWD     varchar(20)   not null,
+    U_ID         varchar(128) primary key comment 'UUID生成ID',
+    U_ACCOUNT    varchar(128)   not null unique,
+    U_PASSWD     varchar(128)   not null,
     U_HEAD_TILTS varchar(1024) not null comment '头像图片路径地址'
 );
 
@@ -46,5 +46,3 @@ select *
 from TORTOISE;
 select *
 from RECORDING_INFORMATION;
-
-

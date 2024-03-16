@@ -1,7 +1,6 @@
 package com.deaifish.tortoiserecordbook.service.impl;
 
 import com.deaifish.tortoiserecordbook.bean.User;
-import com.deaifish.tortoiserecordbook.dto.UserLoginDTO;
 import com.deaifish.tortoiserecordbook.exception.UserException;
 import com.deaifish.tortoiserecordbook.mapper.UserMapper;
 import com.deaifish.tortoiserecordbook.properties.PathProperties;
@@ -11,6 +10,7 @@ import com.deaifish.tortoiserecordbook.utils.ImgUtil;
 import com.deaifish.tortoiserecordbook.utils.UUIDUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,32 +27,15 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     @Autowired
-    UserMapper userMapper;
+    private UserMapper userMapper;
     @Autowired
-    TortoiseService tortoiseService;
+    private TortoiseService tortoiseService;
     @Autowired
-    PathProperties pathProperties;
+    private PathProperties pathProperties;
     @Autowired
-    ImgUtil imgUtil;
+    private ImgUtil imgUtil;
     @Autowired
     UUIDUtil uuidUtil;
-
-    /**
-     * @description 用户登录
-     *
-     * @author DEAiFISH
-     * @date 2023/11/23 19:24
-     * @param user 账号、密码
-     * @return com.deaifish.tortoiserecordbook.bean.User
-     */
-    @Override
-    public User login(UserLoginDTO user) {
-        User u = userMapper.selByAccount(user.getAccount());
-        if (u != null && u.getPasswd().equals(user.getPasswd())) {
-            return u;
-        }
-        throw new UserException("用户名或密码错误。");
-    }
 
     /**
      * @description 查询所有用户
@@ -79,6 +62,8 @@ public class UserServiceImpl implements UserService {
         if (user.getHeadTilts() == null || user.getHeadTilts().isEmpty()) {
             user.setHeadTilts(imgUtil.getImgURL(pathProperties.userHeadTiltsDirPath + pathProperties.userDefaultPhotoName));
         }
+        String encode = new BCryptPasswordEncoder().encode(user.getPasswd());
+        user.setPasswd("{bcrypt}" + encode);
         userMapper.addUser(user);
     }
 
@@ -91,7 +76,7 @@ public class UserServiceImpl implements UserService {
      * @return java.lang.String
      */
     @Override
-    public User selByID(String id) {
+    public User userExists(String id) {
         return userMapper.selByID(id);
     }
 
@@ -122,6 +107,7 @@ public class UserServiceImpl implements UserService {
         }
         //删除乌龟信息
         tortoiseService.delTortoiseByUID(id);
+        // 删除头像
         imgUtil.delImg(user.getHeadTilts());
         userMapper.delUser(id);
     }

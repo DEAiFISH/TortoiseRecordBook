@@ -21,11 +21,11 @@ import java.util.List;
 @Slf4j
 public class RecordingInformationServiceImpl implements RecordingInformationService {
     @Autowired
-    RecordingInformationMapper recordingInformationMapper;
+    private RecordingInformationMapper recordingInformationMapper;
     @Autowired
-    ImgUtil imgUtil;
+    private ImgUtil imgUtil;
     @Autowired
-    UUIDUtil uuidUtil;
+    private UUIDUtil uuidUtil;
 
     /**
      * @description 查询所有乌龟信息

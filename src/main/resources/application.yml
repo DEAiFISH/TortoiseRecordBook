@@ -29,9 +29,9 @@ spring:
       add-mappings: true
       cache:
         cachecontrol:
-          ## 浏览器第一次请求服务器，服务器告诉浏览器此资源缓存7200秒，7200秒以内的所有此资源访问不用发给服务器请求，7200秒以后发请求给服务器
+          # 浏览器第一次请求服务器，服务器告诉浏览器此资源缓存7200秒，7200秒以内的所有此资源访问不用发给服务器请求，7200秒以后发请求给服务器
           max-age: 7200s
-          #使用资源 last-modified 时间，来对比服务器和浏览器的资源是否相同没有变化。相同返回 304
+          # 使用资源 last-modified 时间，来对比服务器和浏览器的资源是否相同没有变化。相同返回 304
         use-last-modified: true
       static-locations:
         - classpath:/META-INF/resources/

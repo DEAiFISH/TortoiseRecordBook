@@ -1,7 +1,6 @@
 package com.deaifish.tortoiserecordbook.controller;
 
 import com.deaifish.tortoiserecordbook.bean.User;
-import com.deaifish.tortoiserecordbook.dto.UserLoginDTO;
 import com.deaifish.tortoiserecordbook.dto.UserSingUpDTO;
 import com.deaifish.tortoiserecordbook.dto.UserUpdateDTO;
 import com.deaifish.tortoiserecordbook.properties.PathProperties;
@@ -13,6 +12,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,18 +38,6 @@ public class UserController {
     @Autowired
     PathProperties pathProperties;
 
-    /**
-     * @description 用户登录
-     *
-     * @author DEAiFISH
-     * @date 2023/11/23 19:24
-     * @param user 账号、密码
-     * @return com.deaifish.tortoiserecordbook.bean.User
-     */
-    @PostMapping("/login")
-    public ResultVO<User> login(@RequestBody UserLoginDTO user) {
-        return new ResultVO<>(HttpStatus.OK.value(), "用户登录", userService.login(user));
-    }
 
     /**
      * @description 查询所有用户
@@ -104,14 +92,14 @@ public class UserController {
      */
     @PutMapping("/upd")
     public ResultVO<String> updUser(@Validated @RequestBody UserUpdateDTO user) {
-        User u = userService.selByID(user.getId());
+        User u = userService.userExists(user.getId());
         if (u == null) {
             return new ResultVO<>(HttpStatus.OK.value(), "修改用户信息", "用户不存在。");
         }
         userService.updUser(User.builder()
                 .id(user.getId())
                 .account(user.getAccount())
-                .passwd(user.getPasswd())
+                .passwd("{bcrypt}" + new BCryptPasswordEncoder().encode(user.getPasswd()))
                 .headTilts(u.getHeadTilts())
                 .build());
         return new ResultVO<>(HttpStatus.OK.value(), "修改用户信息", "修改成功。");
@@ -128,7 +116,7 @@ public class UserController {
      */
     @PutMapping("/upd-photo")
     public ResultVO<String> updatePhoto(@NotNull(message = "文件不能为空。") @RequestParam MultipartFile img, @Validated @RequestParam String uid) throws IOException {
-        User user = userService.selByID(uid);
+        User user = userService.userExists(uid);
         String fileName = imgService.updImg(user.getHeadTilts(), img.getInputStream(), pathProperties.userHeadTiltsDirPath);
         user.setHeadTilts(fileName);
         userService.updUser(user);
@@ -158,8 +146,8 @@ public class UserController {
      * @return Boolean true:被占用;false:未被占用
      */
     @GetMapping("/check")
-    public  ResultVO<Boolean> checkID(@RequestParam String id){
-        User user = userService.selByID(id);
+    public ResultVO<Boolean> checkID(@RequestParam String id) {
+        User user = userService.userExists(id);
         return new ResultVO<>(HttpStatus.OK.value(), "查询ID是否被注册。", user != null);
     }
 }

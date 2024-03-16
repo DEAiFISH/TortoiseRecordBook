@@ -86,4 +86,15 @@ public interface UserMapper {
      */
     @Delete("delete from USER where U_ID = #{id}")
     void delUser(String id);
+
+    /**
+     * @description 修改用户密码
+     *
+     * @author DEAiFISH
+     * @date 2024/3/16 20:14
+     * @param account   用户账号
+     * @param passwd    新密码
+     */
+    @Update("update USER set U_PASSWD = #{passwd} where U_ACCOUNT = #{account};")
+    void updatePassword(String account, String passwd);
 }
